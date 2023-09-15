@@ -1,14 +1,36 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { toggleMenu } from "../utils/appslice";
+import { YouTube_SEARCH_API } from "../utils/constant";
+import { json } from "react-router-dom";
 
 const Head = () => {
+  const [searchQuery, SetsearchQuery] = useState("");
+  const [suggestuin, Setsuggestion] = useState([]);
+  const [showSuggestion ,setShowsuggestion] = useState(false)
 
-  const dispatch = useDispatch() 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      getSearchSuggustion();
+    },200);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  const getSearchSuggustion = async () => {
+    console.log(searchQuery);
+    const data = await fetch(YouTube_SEARCH_API + searchQuery);
+    const json = await data.json();
+    Setsuggestion(json[1]);
+  };
+
+  const dispatch = useDispatch();
 
   const toggleMenuHandler = () => {
-    dispatch(toggleMenu())
-  }
+    dispatch(toggleMenu());
+  };
 
   return (
     <div className=" grid grid-flow-col p-3 m-2 shadow-lg">
@@ -29,16 +51,36 @@ const Head = () => {
       </div>
 
       <div className="col-span-10 px-10 text-center ">
-        <input
-          type="text"
-          placeholder="Search"
-          className=" w-1/2 border border-gray-400 p-2 rounded-l-full"
-        />
-        <button className="border border-gray-400 p-2 rounded-r-full bg-gray-100">
-          🔍
-        </button>
+        <div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => SetsearchQuery(e.target.value)}
+            onFocus={() => setShowsuggestion(true)}
+            onBlur={() => setShowsuggestion(false)}
+            placeholder="Search"
+            className=" px-5 w-1/2 border border-gray-400 p-2 rounded-l-full"
+          />
+          <button className="border border-gray-400 p-2 rounded-r-full bg-gray-100">
+            🔍
+          </button>
+        </div>
+        { showSuggestion && ( <div
+          className="absolute top-16 left-64 bg-slate-50 py-2  pr-96 ml-56 w-[29rem] border border-gray-100 
+        shadow-lg rounded-lg overflow-y-auto max-h-70" >
+          <ul>
+            {suggestuin.map((s) => (
+              <li
+                key={s}
+                className=" py-2  shadow-sm hover:bg-gray-100 text-left w-96"
+              >
+                🔍{s}
+              </li>
+            ))}
+          </ul>
+        </div>
+        )}
       </div>
-
       <div className=" col-span-1">
         <img
           className=" h-8"
